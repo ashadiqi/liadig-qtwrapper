@@ -1,7 +1,8 @@
 import sys
 from PyQt5.QtCore import Qt, QUrl
-from PyQt5.QtWidgets import QApplication, QMainWindow, QTabWidget, QAction, QToolBar
-from PyQt5.QtWebEngineWidgets import QWebEngineView
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTabWidget, QAction, QToolBar, QLineEdit, QWidget, QHBoxLayout
+from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
+from PyQt5.QtGui import QIcon
 
 class Browser(QMainWindow):
     def __init__(self):
@@ -10,46 +11,65 @@ class Browser(QMainWindow):
         self.setWindowTitle("LIA Digital QT")
         self.setGeometry(300, 100, 1200, 800)
 
-        # Add tab widget for tabs
+        # tab widget for tabs
         self.tabs = QTabWidget()
         self.setCentralWidget(self.tabs)
         self.tabs.setTabsClosable(True)
         self.tabs.tabCloseRequested.connect(self.close_tab)
 
-        # Load the initial URL in the first tab
+        # the initial URL in the first tab
         self.add_new_tab("https://digital.lia.co.id")
 
-        # Create zoom in/out actions
+        # toolbar and actions
         toolbar = QToolBar()
+        toolbar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
         self.addToolBar(toolbar)
 
-        zoom_in_action = QAction('Zoom In', self)
+        zoom_in_action = QAction(QIcon.fromTheme("zoom-in"), 'Zoom In', self)
         zoom_in_action.triggered.connect(self.zoom_in)
         toolbar.addAction(zoom_in_action)
 
-        zoom_out_action = QAction('Zoom Out', self)
+        zoom_out_action = QAction(QIcon.fromTheme("zoom-out"), 'Zoom Out', self)
         zoom_out_action.triggered.connect(self.zoom_out)
         toolbar.addAction(zoom_out_action)
 
-        new_tab_action = QAction('New Tab', self)
+        new_tab_action = QAction(QIcon.fromTheme("tab-new"), 'New Tab', self)
         new_tab_action.triggered.connect(lambda: self.add_new_tab())
         toolbar.addAction(new_tab_action)
 
-        # Add navigation actions: Home, Back, Forward
-        home_action = QAction('Home', self)
+        home_action = QAction(QIcon.fromTheme("go-home"), 'Home', self)
         home_action.triggered.connect(lambda: self.tabs.currentWidget().setUrl(QUrl("https://digital.lia.co.id")))
         toolbar.addAction(home_action)
 
-        back_action = QAction('Back', self)
+        back_action = QAction(QIcon.fromTheme("go-previous"), 'Back', self)
         back_action.triggered.connect(lambda: self.tabs.currentWidget().back())
         toolbar.addAction(back_action)
 
-        forward_action = QAction('Forward', self)
+        forward_action = QAction(QIcon.fromTheme("go-next"), 'Forward', self)
         forward_action.triggered.connect(lambda: self.tabs.currentWidget().forward())
         toolbar.addAction(forward_action)
 
+        # A widget for the search function
+        search_widget = QWidget()
+        search_layout = QHBoxLayout()
+        search_widget.setLayout(search_layout)
+
+        self.search_input = QLineEdit()
+        self.search_input.setPlaceholderText("Find in page...")
+        self.search_input.returnPressed.connect(self.find_next)
+        search_layout.addWidget(self.search_input)
+
+        find_next_action = QAction(QIcon.fromTheme("go-down"), 'Find Next', self)
+        find_next_action.triggered.connect(self.find_next)
+        toolbar.addAction(find_next_action)
+
+        find_prev_action = QAction(QIcon.fromTheme("go-up"), 'Find Previous', self)
+        find_prev_action.triggered.connect(self.find_prev)
+        toolbar.addAction(find_prev_action)
+
+        toolbar.addWidget(search_widget)
+
     def add_new_tab(self, url=None):
-        """Add a new tab with the specified URL."""
         if url is None:
             url = "https://digital.lia.co.id"
         browser = QWebEngineView()
@@ -59,37 +79,39 @@ class Browser(QMainWindow):
         self.tabs.setCurrentWidget(browser)
 
     def close_tab(self, index):
-        """Close the tab at the given index."""
         if self.tabs.count() > 1:
             self.tabs.removeTab(index)
 
     def zoom_in(self):
-        """Zoom in on the current tab."""
         current_tab = self.tabs.currentWidget()
         current_tab.setZoomFactor(current_tab.zoomFactor() + 0.1)
 
     def zoom_out(self):
-        """Zoom out on the current tab."""
         current_tab = self.tabs.currentWidget()
         current_tab.setZoomFactor(current_tab.zoomFactor() - 0.1)
-        
-def closeEvent(self, event):
-    """Handle the window close event."""
-    # Clear cache for all profiles
-    self.profile.clearAllVisitedLinks()
-    self.profile.clearHttpCache()
     
-    # Iterate through all tabs and clear their individual caches
-    for i in range(self.tabs.count()):
-        webview = self.tabs.widget(i)
-        page = webview.page()
-        profile = page.profile()
-        profile.clearAllVisitedLinks()
-        profile.clearHttpCache()
-    
-    # Accept the close event
-    event.accept()    
+    def find_next(self):
+        current_tab = self.tabs.currentWidget()
+        if isinstance(current_tab, QWebEngineView):
+            flags = QWebEnginePage.FindFlags(0)
+            current_tab.findText(self.search_input.text(), flags)
 
+    def find_prev(self):
+        current_tab = self.tabs.currentWidget()
+        if isinstance(current_tab, QWebEngineView):
+            flags = QWebEnginePage.FindFlags(QWebEnginePage.FindBackward)
+            current_tab.findText(self.search_input.text(), flags)
+
+    def closeEvent(self, event):
+        # Clear cache
+        for i in range(self.tabs.count()):
+            webview = self.tabs.widget(i)
+            page = webview.page()
+            profile = page.profile()
+            profile.clearAllVisitedLinks()
+            profile.clearHttpCache()
+        
+        event.accept()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
