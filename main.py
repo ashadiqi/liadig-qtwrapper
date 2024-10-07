@@ -59,6 +59,8 @@ class Browser(QMainWindow):
         self.search_input.returnPressed.connect(self.find_next)
         search_layout.addWidget(self.search_input)
 
+        toolbar.addWidget(search_widget)
+
         find_next_action = QAction(QIcon.fromTheme("go-down"), 'Find Next', self)
         find_next_action.triggered.connect(self.find_next)
         toolbar.addAction(find_next_action)
@@ -67,7 +69,7 @@ class Browser(QMainWindow):
         find_prev_action.triggered.connect(self.find_prev)
         toolbar.addAction(find_prev_action)
 
-        toolbar.addWidget(search_widget)
+        
 
     def add_new_tab(self, url=None):
         if url is None:
