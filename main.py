@@ -11,16 +11,16 @@ class Browser(QMainWindow):
         self.setWindowTitle("LIA Digital QT")
         self.setGeometry(300, 100, 1200, 800)
 
-        # tab widget for tabs
+        # Tab widget 
         self.tabs = QTabWidget()
         self.setCentralWidget(self.tabs)
         self.tabs.setTabsClosable(True)
         self.tabs.tabCloseRequested.connect(self.close_tab)
 
-        # the initial URL in the first tab
+        # URL for the first tab
         self.add_new_tab("https://digital.lia.co.id")
 
-        # toolbar and actions
+        # Toolbar and actions
         toolbar = QToolBar()
         toolbar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
         self.addToolBar(toolbar)
@@ -49,7 +49,7 @@ class Browser(QMainWindow):
         forward_action.triggered.connect(lambda: self.tabs.currentWidget().forward())
         toolbar.addAction(forward_action)
 
-        # A widget for the search function
+        # Widget for the search function
         search_widget = QWidget()
         search_layout = QHBoxLayout()
         search_widget.setLayout(search_layout)
@@ -68,9 +68,7 @@ class Browser(QMainWindow):
         find_prev_action = QAction(QIcon.fromTheme("go-up"), 'Find Previous', self)
         find_prev_action.triggered.connect(self.find_prev)
         toolbar.addAction(find_prev_action)
-
-        
-
+    
     def add_new_tab(self, url=None):
         if url is None:
             url = "https://digital.lia.co.id"
